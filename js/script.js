@@ -56,6 +56,8 @@ class UI{
 
     static deleteFromBook(target){
         if(target.hasAttribute('href')){
+            console.log(target.parentElement.previousElementSibling.textContent.trim());
+            Store.deleteFromLocalStorage(target.parentElement.previousElementSibling.textContent.trim());
             let bookName = target.parentElement.parentElement;
             bookName.remove();
         }
@@ -63,8 +65,46 @@ class UI{
 }
 
 
+//local storage class
+class Store {
+    static getBook(){
+        let books;
+        if(localStorage.getItem('books') === null){
+            books = [];
+        }else{
+            books = JSON.parse(localStorage.getItem('books'));
+        }
+        return books;
+    }
+
+    static addBook(book){
+        let books = Store.getBook();
+        books.push(book);
+        localStorage.setItem('books',JSON.stringify(books))
+    }
+
+    static displayBooks(){
+        let books = Store.getBook();
+        books.forEach(book => {
+            UI.addToBookList(book);
+        }); 
+    }
+
+    static deleteFromLocalStorage(isbn){
+        let books = Store.getBook();
+        books.forEach((book,index) => {
+            if(book.isbn === isbn){
+                books.splice(index,1);
+            }
+        });
+
+        localStorage.setItem('books',JSON.stringify(books));
+    }
+}
+
+
 //define function
-//add new book
+//add new book front end and back end
 function newBook(e){
     let title = document.querySelector('#title').value;
     let author = document.querySelector('#author').value;
@@ -79,6 +119,7 @@ function newBook(e){
     
     UI.addToBookList(book);//add book font end
     UI.showAlert("Book added successfully!","success");
+    Store.addBook(book);
     UI.clearFields(book);//clear the current value after book added
     }
 
@@ -99,6 +140,9 @@ function removeBook(e){
 
 
 
+
+
 //add eventlistener
 form.addEventListener('submit',newBook);
 bookList.addEventListener('click',removeBook);
+document.addEventListener('DOMContentLoaded',Store.displayBooks());
